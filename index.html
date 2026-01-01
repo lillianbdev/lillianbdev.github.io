@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Lillian Bowerman · Game Developer</title>
+
+    <!-- Simple.css -->
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
+
+    <!-- Custom style for 2-column grid -->
+    <style>
+      main > section.grid {
+        display: grid !important; /* Ensure grid display */
+        grid-template-columns: repeat(
+          2,
+          1fr
+        ) !important; /* Force 2 equal columns */
+        gap: 1rem; /* Optional: Adjust gap between grid items */
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h1>Lillian Bowerman</h1>
+      <p>Game Developer | Harrisburg University Student</p>
+    </header>
+
+    <main>
+      <section>
+        <h2>About Me</h2>
+        <p>
+          Hello, I'm Lillian. '
+        </p>
+        <h3>Education</h3>
+        <ul>
+          <li>
+            <strong>Bachelors - Game Design</strong> - Harrisburg 
+            (Expected Graduation: Spring 2027)
+          </li>
+        </ul>
+        <h3>Skills</h3>
+        <ul>
+          <li>Game Engines: Godot, Unity, Unreal (basic)</li>
+          <li>Programming: C#, GDScript, Blueprint</li>
+          <li>Tools: Git, Blender (Basic Modeling),</li>
+          <li>Concepts: </li>
+        </ul>
+      </section>
+
+      <h2>Portfolio Projects</h2>
+      <section class="grid">
+        <article>
+          <a href="projects/die/index.html" aria-label="Rotating Die sketch">
+            <figure>
+              <img
+                src="projects/die/thumb.webp"
+                alt="Animated thumbnail of a rotating 3D die"
+                loading="lazy"
+              />
+              <figcaption>Rotating Die (p5.js)</figcaption>
+            </figure>
+          </a>
+        </article>
+        <article>
+          <a
+            href="projects/blockhead/index.html"
+            aria-label="BlockHead Project"
+          >
+            <figure>
+              <img
+                style="margin-top: 25px; margin-bottom: 37px"
+                src="projects/blockhead/thumb.gif"
+                alt="Placeholder thumbnail for BlockHead project"
+                loading="lazy"
+              />
+              <figcaption>BlockHead (Blueprint)</figcaption>
+            </figure>
+          </a>
+        </article>
+        <article>
+          <a
+            href="projects/pokemon-strosity/index.html"
+            aria-label="Pokemon API Project"
+          >
+            <figure>
+              <img
+                src="projects/pokemon-strosity/thumb.webp"
+                alt="Example thumbnail for Pokemon"
+                loading="lazy"
+              />
+              <figcaption>Pokemon-strosity (P5)</figcaption>
+            </figure>
+          </a>
+        </article>
+
+        <!-- TODO: Add more <article> elements for new projects here -->
+      </section>
+    </main>
+  </body>
+</html>

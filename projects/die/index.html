@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Rotating Die</title>
+    <!-- Replaced with sketch title -->
+
+    <!-- Simple.css -->
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
+
+    <!-- highlight.js -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/@highlightjs/cdn-assets@11/styles/github.min.css"
+      media="(prefers-color-scheme: light)"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/@highlightjs/cdn-assets@11/styles/github-dark.min.css"
+      media="(prefers-color-scheme: dark)"
+    />
+    <style>
+      pre.code-wrapper {
+        padding: 0;
+      }
+    </style>
+    <script src="https://unpkg.com/@highlightjs/cdn-assets@11/highlight.min.js"></script>
+    <script>
+      hljs.highlightAll();
+    </script>
+    <!-- Initialize highlight.js -->
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href="../../index.html">Home</a>
+        <!-- Adjusted path back to the main index -->
+      </nav>
+      <h1>Rotating Die</h1>
+      <!-- Replaced with sketch title -->
+    </header>
+    <main>
+      <section>
+        <figure>
+          <!-- Set the correct path for the sketch's HTML file -->
+          <iframe
+            src="sketch.html"
+            loading="lazy"
+            scrolling="no"
+            style="width: 100%; aspect-ratio: 3/2; border: none"
+          ></iframe>
+          <!-- Added caption from projects.json -->
+          <figcaption>
+            Click and drag on the canvas to manually rotate the die.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="desc">
+        <h2>Description</h2>
+        <!-- Added sketch description from projects.json -->
+        <p>
+          This sketch renders a single six-sided die using p5.js in WEBGL mode.
+          It automatically rotates to showcase the 3D model, but you can also
+          click and drag the mouse to take control and inspect it from any
+          angle. The pips (dots) are drawn directly onto the faces.
+        </p>
+        <p>
+          <strong>Learning Goals:</strong> My main goal here was to get
+          comfortable with 3D rendering basics in p5.js. This involved setting
+          up a WEBGL canvas, using `box()` to create the basic shape, and
+          understanding how `rotateX()`, `rotateY()`, and `translate()` work
+          together in 3D space. I also wanted to implement a simple interaction
+          model that switches between automatic animation and user control.
+        </p>
+        <p>
+          <strong>Challenges & Solutions:</strong> Getting the pips to appear
+          correctly on each face, regardless of the die's rotation, was the
+          trickiest part. I learned the importance of using `push()` and `pop()`
+          to isolate transformations for each face. Calculating the correct
+          translation and rotation to position each set of pips required some
+          trial and error with vector math and understanding the order of
+          transformations. Switching between auto-rotation (`frameCount`) and
+          manual control (`orbitControl()`) based on mouse interaction also
+          required careful state management.
+        </p>
+      </section>
+
+      <section>
+        <h2>Source Code (sketch.js)</h2>
+        <!-- Pasted the sketch.js code inside the <code> block -->
+        <pre class="code-wrapper"><code class="language-js">
+/**
+ * Setup: Initializes canvas & settings.
+ *
+ * - Creates a window-sized WEBGL canvas.
+ * - Enables anti-aliasing for smooth edges.
+ */
+
+function setup() {
+  createCanvas(windowWidth, windowHeight, WEBGL);
+  setAttributes("antialias", true);
+}
+
+/**
+ * draw(): Main rendering loop.
+ *
+ * Clears background, handles mouse input,
+ * applies rotation (auto or user),
+ * draws the cube, then draws pips on
+ * each face with correct orientation.
+ *
+ * Globals:
+ * - `autoRotate` tracks rotation state.
+ *   - If true, die auto-rotates by frame count.
+ *   - If false, orbitControl for user.
+ * - `cubeSize` and `pipSize` in pixels.
+ */
+
+let autoRotate = true;
+const cubeSize = 175;
+const pipSize = 25;
+
+function draw() {
+  background(250);
+  autoRotate = handleMouseInteraction();
+
+  if (autoRotate) {
+    // Gentle auto-rotation
+    rotateX(frameCount * 0.01 * PI);
+    rotateY(frameCount * 0.005 * PI);
+  } else {
+    orbitControl();
+  }
+
+  // Draw the cube body
+  push();
+  fill(255);
+  stroke(0);
+  strokeWeight(4);
+  box(cubeSize);
+  pop();
+
+  // Draw pips on all sides
+  const surfaceOffset = cubeSize / 2 + 0.5;
+  drawAllPips(pipSize, surfaceOffset);
+}
+
+/**
+ * Draws the pips on all six faces of the die.
+ * Calculates necessary rotations and translations.
+ *
+ * @param {number} pipSize Diameter of pips.
+ * @param {number} surfaceOffset Distance from center to face.
+ */
+
+function drawAllPips(pipSize, surfaceOffset) {
+  // Define rotation vectors for clarity
+  const noRot = createVector(0, 0, 0);
+  const rotY_90 = createVector(0, HALF_PI, 0);
+  const rotY_neg90 = createVector(0, -HALF_PI, 0);
+  const rotX_90 = createVector(HALF_PI, 0, 0);
+  const rotX_neg90 = createVector(-HALF_PI, 0, 0);
+
+  // Define translation vectors for each face
+  const translateFront = createVector(0, 0, surfaceOffset);
+  const translateLeft = createVector(-surfaceOffset, 0, 0);
+  const translateTop = createVector(0, surfaceOffset, 0);
+  const translateBottom = createVector(0, -surfaceOffset, 0);
+  const translateRight = createVector(surfaceOffset, 0, 0);
+  const translateBack = createVector(0, 0, -surfaceOffset);
+
+  // Draw pips for each side using vectors
+  // Args: pipSize, sideNum, translationVec, rotationVec
+  drawPipsForSide(pipSize, 1, translateFront, noRot);
+  drawPipsForSide(pipSize, 2, translateLeft, rotY_90);
+  drawPipsForSide(pipSize, 3, translateTop, rotX_neg90);
+  drawPipsForSide(pipSize, 4, translateBottom, rotX_90);
+  drawPipsForSide(pipSize, 5, translateRight, rotY_neg90);
+  drawPipsForSide(pipSize, 6, translateBack, noRot);
+}
+
+/**
+ * Draws pips for a specific side number.
+ *
+ * Assumes context is already translated
+ * and rotated to the correct die face.
+ * Uses p5.Vector for translation/rotation.
+ *
+ * @param {number} pipSize Diameter of pips.
+ * @param {number} sideNum Pips to draw (1-6).
+ * @param {p5.Vector} translationVec Vector for face center offset.
+ * @param {p5.Vector} [rotationVec] Vector for face rotation (x, y, z angles). Defaults to (0,0,0).
+ */
+
+function drawPipsForSide(
+  pipSize,
+  sideNum,
+  translationVec,
+  rotationVec = createVector(0, 0, 0) // Default rotation
+) {
+  push(); // Isolate transforms/styles
+
+  // Position pips on the cube face using vectors
+  translate(translationVec);
+  rotateX(rotationVec.x);
+  rotateY(rotationVec.y);
+  rotateZ(rotationVec.z);
+
+  // Set pip color to black, side 1 in red.
+  const pipColor = sideNum === 1 ? fill("red") : fill("black");
+  noStroke();
+
+  // Get 2D pip positions for this face
+  let positions = getPipPositions(sideNum);
+
+  // Draw a circle for each pip position
+  for (let pos of positions) {
+    push();
+    translate(pos.x, pos.y, 0);
+    circle(0, 0, pipSize);
+    pop();
+  }
+
+  pop(); // Restore transforms/styles
+}
+
+/**
+ * Calculates 2D pip positions on a face.
+ * Relative to the face center.
+ * Based on standard die layouts (1-6).
+ *
+ * @param {number} sideNum Num (1-6) for positions.
+ * @param {number} [offset=40] Pip distance from center.
+ * @returns {Array&lt;object&gt;} Array of {x, y} coords.
+ */
+
+function getPipPositions(sideNum, offset = 40) {
+  switch (sideNum) {
+    case 1: // Center pip
+      return [{ x: 0, y: 0 }];
+    case 2: // Diagonal pips
+      return [
+        { x: -offset, y: -offset },
+        { x: offset, y: offset },
+      ];
+    case 3: // Diagonal pips + center
+      return [
+        { x: -offset, y: -offset },
+        { x: 0, y: 0 },
+        { x: offset, y: offset },
+      ];
+    case 4: // Corner pips
+      return [
+        { x: -offset, y: -offset },
+        { x: offset, y: -offset },
+        { x: -offset, y: offset },
+        { x: offset, y: offset },
+      ];
+    case 5: // Corner pips + center
+      return [
+        { x: -offset, y: -offset },
+        { x: offset, y: -offset },
+        { x: 0, y: 0 },
+        { x: -offset, y: offset },
+        { x: offset, y: offset },
+      ];
+    case 6: // Two columns of three
+      return [
+        { x: -offset, y: -offset },
+        { x: -offset, y: 0 },
+        { x: -offset, y: offset },
+        { x: offset, y: -offset },
+        { x: offset, y: 0 },
+        { x: offset, y: offset },
+      ];
+    default: // Should not happen 💣
+      return [];
+  }
+}
+
+/**
+ * Handles mouse interaction.
+ * Toggles between auto-rotation and
+ * user-controlled rotation (orbitControl).
+ */
+
+function handleMouseInteraction() {
+  const isMousePressedInCanvas =
+    mouseIsPressed &&
+    mouseX > 0 &&
+    mouseX < width &&
+    mouseY > 0 &&
+    mouseY < height;
+
+  if (isMousePressedInCanvas) {
+    return false; // Disable auto-rotate
+  }
+
+  if (!mouseIsPressed) {
+    return true; // Enable auto-rotate
+  }
+}
+            </code></pre>
+      </section>
+
+      <!-- Removed placeholder for extra code files -->
+    </main>
+  </body>
+</html>
